@@ -1,8 +1,14 @@
-﻿namespace MagicVilla_VillaAPI.Models.Dtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace MagicVilla_VillaAPI.Models.Dtos
 {
     public class VillaDTO
     {
         public int Id { get; set; }
+        [Required]
+        [MaxLength(255)]
         public string Name { get; set; }
+        public int Occupancy { get; set; }
+        public int Sqrft { get; set; }
     }
 }
