@@ -11,13 +11,6 @@ namespace MagicVilla_VillaAPI
 
             // Add services to the container.
 
-            Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
-                .WriteTo
-                .File("log/villaLogs.txt", rollingInterval:RollingInterval.Day)
-                .CreateLogger();
-
-            builder.Host.UseSerilog();
-
             builder.Services
                 .AddControllers()
                 .AddNewtonsoftJson()
