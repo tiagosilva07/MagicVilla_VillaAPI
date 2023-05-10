@@ -1,9 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 
 namespace MagicVilla_VillaAPI.Models.Dtos
 {
-    public class VillaDTO
+    public class VillaUpdateDTO
     {
+        [Required]
         public int Id { get; set; }
         [Required]
         [MaxLength(255)]
