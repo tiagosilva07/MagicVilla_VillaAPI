@@ -1,4 +1,4 @@
-﻿namespace MagicVilla_VillaAPI.Logging
+﻿namespace MagicVilla_VillaAPI.CustomLog
 {
     public interface ILogging
     {
