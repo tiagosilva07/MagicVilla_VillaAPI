@@ -29,7 +29,7 @@ namespace MagicVilla_VillaAPI.Repositories
             await SaveAsync();
         }
 
-        public async Task<T> GetAsync(Expression<Func<T, bool>> filter = null, bool tracked = true)
+        public async Task<T> GetAsync(Expression<Func<T, bool>> filter = null, bool tracked = true, string includeProperties = null)
         {
             IQueryable<T> query = DbSet;
 
@@ -38,37 +38,45 @@ namespace MagicVilla_VillaAPI.Repositories
                 query = query.AsNoTracking();
             }
 
-            if (filter != null)
-            {
-                query = query.Where(filter);
-            }
+            query = QueryOptions(filter, includeProperties, query);
 
             return await query.FirstOrDefaultAsync();
 
         }
 
-        public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null)
+
+        public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string includeProperties = null)
         {
             IQueryable<T> query = DbSet;
 
-            if (filter != null)
-            {
-                query = query.Where(filter);
-            }
+            query = QueryOptions(filter, includeProperties, query);
 
             return await query.ToListAsync();
-        }
-
-        public async Task UpdateAsync(T entity)
-        {
-            DbSet.Update(entity);
-            await SaveAsync();
         }
 
 
         public async Task SaveAsync()
         {
             await _db.SaveChangesAsync();
+        }
+
+
+        private static IQueryable<T> QueryOptions(Expression<Func<T, bool>> filter, string includeProperties, IQueryable<T> query)
+        {
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            if (includeProperties != null)
+            {
+                foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(includeProp);
+                }
+            }
+
+            return query;
         }
     }
 }
