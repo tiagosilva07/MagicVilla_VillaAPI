@@ -1,16 +1,17 @@
 ﻿using MagicVilla_VillaAPI.Models.Dtos;
 using MagicVilla_VillaAPI.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using MagicVilla_VillaAPI.Repositories.IRepositories;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
-namespace MagicVilla_VillaAPI.Controllers
+namespace MagicVilla_VillaAPI.Controllers.v1
 {
-
-    public class VillaNumberAPIController : BaseApiController
+    [Route("api/v{version:apiVersion}/VillaNumberAPI")]
+    [ApiController]
+    [ApiVersion("1.0")]
+    public class VillaNumberAPIController : ControllerBase
     {
         private readonly IVillaNumberRepository _db;
         private readonly IVillaRepository _dbVillas;
@@ -28,16 +29,19 @@ namespace MagicVilla_VillaAPI.Controllers
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<APIResponse>> GetVillaNumbers()
         {
-            var villaNumberList = await _db.GetAllAsync(includeProperties:"Villa");
+            var villaNumberList = await _db.GetAllAsync(includeProperties: "Villa");
             _result.Result = _mapper.Map<List<VillaNumberDTO>>(villaNumberList);
             _result.StatusCode = HttpStatusCode.OK;
-            _result.IsSuccess= true;
+            _result.IsSuccess = true;
             return Ok(_result);
         }
 
+
         [HttpGet("{id:int}", Name = "GetVillaNumber")]
+        [Authorize(Roles = "admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -47,7 +51,7 @@ namespace MagicVilla_VillaAPI.Controllers
             {
                 return BadRequest();
             }
-            var villaNumber = await _db.GetAsync(x => x.VillaNo == id,includeProperties:"Villa");
+            var villaNumber = await _db.GetAsync(x => x.VillaNo == id, includeProperties: "Villa");
 
             if (villaNumber == null)
                 return NotFound();
@@ -59,6 +63,7 @@ namespace MagicVilla_VillaAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -88,11 +93,12 @@ namespace MagicVilla_VillaAPI.Controllers
             _result.Result = _mapper.Map<VillaNumberDTO>(model);
             _result.StatusCode = HttpStatusCode.Created;
             _result.IsSuccess = true;
-           
+
             return CreatedAtRoute("GetVillaNumber", new { id = model.VillaNo }, _result);
         }
 
         [HttpDelete("{id:int}", Name = "DeleteVillaNumber")]
+        [Authorize(Roles = "admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -119,6 +125,7 @@ namespace MagicVilla_VillaAPI.Controllers
         }
 
         [HttpPut("{id:int}", Name = "UpdateVillaNumber")]
+        [Authorize(Roles = "admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> UpdateVillaNumber(int id, [FromBody] VillaNumberUpdateDTO updateDTO)
@@ -136,7 +143,7 @@ namespace MagicVilla_VillaAPI.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var villaNumber = await _db.GetAsync(v => v.VillaNo == updateDTO.VillaNo, tracked:false);
+                var villaNumber = await _db.GetAsync(v => v.VillaNo == updateDTO.VillaNo, tracked: false);
 
                 VillaNumber updatedVillaNumber = _mapper.Map<VillaNumber>(updateDTO);
                 villaNumber = updatedVillaNumber;
@@ -146,10 +153,10 @@ namespace MagicVilla_VillaAPI.Controllers
                 _result.IsSuccess = true;
 
             }
-            catch (Exception ex)            
+            catch (Exception ex)
             {
                 _result.IsSuccess = false;
-                _result.ErrorMessages= new List<string> { ex.Message };
+                _result.ErrorMessages = new List<string> { ex.Message };
             }
 
             return Ok(_result);

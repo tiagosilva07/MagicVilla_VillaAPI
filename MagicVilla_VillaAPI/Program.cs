@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MagicVilla_VillaAPI
 {
@@ -29,6 +30,17 @@ namespace MagicVilla_VillaAPI
             builder.Services.AddScoped<IVillaNumberRepository, VillaNumberRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddAutoMapper(typeof(MappingConfig));
+            builder.Services.AddApiVersioning(options =>
+            {
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.ReportApiVersions= true;
+            });
+            builder.Services.AddVersionedApiExplorer(options =>
+            {
+                options.GroupNameFormat = "'v'VVV";
+                options.SubstituteApiVersionInUrl= true;
+            });
 
             var key = builder.Configuration.GetValue<string>("ApiSettings:Secret");
 
@@ -87,6 +99,43 @@ namespace MagicVilla_VillaAPI
 
                      }
                 });
+
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Version = "v1.0",
+                    Title = "Magic Villa",
+                    Description = "API to manage Villa",
+                    TermsOfService = new Uri("https://example.com/terms"),
+                    Contact = new OpenApiContact { 
+                        Name = "Tiago Silva" , 
+                        Url= new Uri("https://github.com/tiagosilva07")
+                    },
+                    License= new OpenApiLicense
+                    {
+                        Name= "License",
+                        Url = new Uri("https://example.com/license")
+                    }
+                });
+
+
+                options.SwaggerDoc("v2", new OpenApiInfo
+                {
+                    Version = "v2.0",
+                    Title = "Magic Villa 2",
+                    Description = "API to manage Villa",
+                    TermsOfService = new Uri("https://example.com/terms"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Tiago Silva",
+                        Url = new Uri("https://github.com/tiagosilva07")
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "License",
+                        Url = new Uri("https://example.com/license")
+                    }
+                });
+
             });
             builder.Services.AddSingleton<ILogging, Logging>();
             
@@ -96,7 +145,11 @@ namespace MagicVilla_VillaAPI
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json","Magic_VillaV1");
+                    options.SwaggerEndpoint("/swagger/v2/swagger.json","Magic_VillaV2");
+                });
             }
 
             app.UseHttpsRedirection();

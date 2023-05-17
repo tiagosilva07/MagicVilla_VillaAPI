@@ -2,6 +2,7 @@
 using MagicVilla_Web.Models.Dtos;
 using MagicVilla_Web.Services.IServices;
 using Microsoft.AspNetCore.Http.HttpResults;
+using static MagicVilla_Web.Models.APIUtility;
 
 namespace MagicVilla_Web.Services
 {
@@ -9,6 +10,7 @@ namespace MagicVilla_Web.Services
     {
         private readonly IHttpClientFactory _clientFactory;
         private string APIUrl;
+
         public VillaNumberService(IHttpClientFactory clientFactory, IConfiguration configuration) : base(clientFactory)
         {
             _clientFactory = clientFactory;
@@ -16,50 +18,56 @@ namespace MagicVilla_Web.Services
         }
 
 
-        public Task<T> CreateAsync<T>(VillaNumberCreateDTO createDTO)
+        public Task<T> CreateAsync<T>(VillaNumberCreateDTO createDTO, string token)   
         {
             return SendAsync<T>(new APIRequest()
             {
                 ApiType = ApiType.POST,
                 Data= createDTO,
-                Url= $"{APIUrl}/api/VillaNumberAPI"
+                Url= $"{APIUrl}/{APIv1Version}/VillaNumberAPI",
+                Token = token
+
             });
         }
 
-        public Task<T> DeleteAsync<T>(int id)
+        public Task<T> DeleteAsync<T>(int id, string token)
         {
             return SendAsync<T>(new APIRequest()
             {
                 ApiType = ApiType.DELETE,
-                Url = $"{APIUrl}/api/VillaNumberAPI/{id}"
+                Url = $"{APIUrl}/{APIv1Version}/VillaNumberAPI/{id}",
+                Token = token
             });
         }
 
-        public Task<T> GetAllAsync<T>()
+        public Task<T> GetAllAsync<T>(string token)
         {
             return SendAsync<T>(new APIRequest()
             {
                 ApiType = ApiType.GET,
-                Url = $"{APIUrl}/api/VillaNumberAPI"
+                Url = $"{APIUrl}/{APIv1Version}/VillaNumberAPI",
+                Token = token
             });
         }
 
-        public Task<T> GetAsync<T>(int id)
+        public Task<T> GetAsync<T>(int id, string token)
         {
             return SendAsync<T>(new APIRequest()
             {
                 ApiType = ApiType.GET,
-                Url = $"{APIUrl}/api/VillaNumberAPI/{id}"
+                Url = $"{APIUrl}/{APIv1Version}/VillaNumberAPI/{id}",
+                Token = token
             });
         }
 
-        public Task<T> UpdateAsync<T>(VillaNumberUpdateDTO updateDTO)
+        public Task<T> UpdateAsync<T>(VillaNumberUpdateDTO updateDTO, string token)
         {
             return SendAsync<T>(new APIRequest()
             {
                 ApiType = ApiType.PUT,
                 Data = updateDTO,
-                Url = $"{APIUrl}/api/VillaNumberAPI/{updateDTO.VillaNo}"
+                Url = $"{APIUrl}/{APIv1Version}/VillaNumberAPI/{updateDTO.VillaNo}",
+                Token = token
             });
         }
     }
