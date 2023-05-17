@@ -7,6 +7,7 @@ using AutoMapper;
 using MagicVilla_VillaAPI.Repositories.IRepositories;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
+using System.Text.Json;
 
 namespace MagicVilla_VillaAPI.Controllers.v1
 {
@@ -28,16 +29,49 @@ namespace MagicVilla_VillaAPI.Controllers.v1
 
         [HttpGet]
         [Authorize(Roles = "admin")]
+        [ResponseCache(CacheProfileName="Default30")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<APIResponse>> GetVillas()
+        public async Task<ActionResult<APIResponse>> GetVillas([FromQuery(Name ="filter Occupancy")]int? occupancy, [FromQuery] string? search, int pageSize = 0, int pageNumber = 1)
         {
-            var villas = await _db.GetAllAsync();
-            _result.Result = _mapper.Map<List<VillaDTO>>(villas);
-            _result.StatusCode = HttpStatusCode.OK;
-            _result.IsSuccess = true;
-            return Ok(_result);
+            try
+            {
+
+                IEnumerable<Villa> villaList;
+
+                if(occupancy > 0)
+                {
+                    villaList = await _db.GetAllAsync(u => u.Occupancy == occupancy, pageSize:pageSize,pageNumber:pageNumber);
+                }
+                else
+                {
+                    villaList = await _db.GetAllAsync(pageSize: pageSize, pageNumber: pageNumber);
+                }
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    villaList = villaList.Where(
+                        u=> u.Name.ToLower().Contains(search.ToLower()));
+                }
+
+                Pagination pagination= new Pagination() { PageNumber = pageNumber, PageSize = pageSize };
+                Response.Headers.Add("x-Pagination",JsonSerializer.Serialize(pagination));
+                _result.Result = _mapper.Map<List<VillaDTO>>(villaList);
+                _result.StatusCode = HttpStatusCode.OK;
+                _result.IsSuccess = true;
+
+                return Ok(_result);
+            }
+            catch(Exception ex)
+            {
+                _result.IsSuccess = false;
+                _result.StatusCode = HttpStatusCode.BadRequest;
+                _result.ErrorMessages.Add(ex.Message.ToString());
+                
+                return BadRequest(_result);
+            }
+          
         }
 
         [HttpGet("{id:int}", Name = "GetVilla")]
@@ -51,12 +85,18 @@ namespace MagicVilla_VillaAPI.Controllers.v1
         {
             if (id == 0)
             {
-                return BadRequest();
+                _result.StatusCode = HttpStatusCode.BadRequest;
+                _result.IsSuccess = false;
+                return BadRequest(_result);
             }
             var villa = await _db.GetAsync(x => x.Id == id);
 
             if (villa == null)
-                return NotFound();
+            {
+                _result.StatusCode = HttpStatusCode.NotFound;
+                _result.IsSuccess = true;
+                return NotFound(_result);
+            }
 
             _result.Result = _mapper.Map<VillaDTO>(villa);
             _result.StatusCode = HttpStatusCode.OK;
