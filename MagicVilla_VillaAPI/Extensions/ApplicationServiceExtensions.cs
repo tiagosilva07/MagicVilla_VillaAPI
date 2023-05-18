@@ -9,6 +9,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using MagicVilla_VillaAPI.Models;
 
 namespace MagicVilla_VillaAPI.Extensions
 {
@@ -20,7 +22,8 @@ namespace MagicVilla_VillaAPI.Extensions
             {
                 options.UseSqlServer(configuration.GetConnectionString("DefaultSQLConnection"));
             });
-
+           services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
            services.AddResponseCaching();
            services.AddScoped<IVillaRepository, VillaRepository>();
            services.AddScoped<IVillaNumberRepository, VillaNumberRepository>();
